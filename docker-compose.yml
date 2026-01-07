@@ -1,0 +1,90 @@
+version: "3.9"
+
+services:
+  
+  bdf-db:
+    image: pgvector/pgvector:pg16
+    container_name: bdf-db
+    environment:
+      POSTGRES_USER: bdf_admin
+      POSTGRES_PASSWORD: securepassword
+      POSTGRES_DB: bdf_vector_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - bdf_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bdf_admin -d bdf_vector_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  
+  bdf-ollama:
+    image: ollama/ollama:latest
+    container_name: bdf-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_storage:/root/.ollama
+    
+    
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  
+  bdf-backend:
+    build: ./bdf-rag-backend
+    container_name: bdf-backend
+    depends_on:
+      bdf-db:
+        condition: service_healthy
+      bdf-ollama:
+        condition: service_healthy
+    environment:
+      
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bdf-db:5432/bdf_vector_db
+      SPRING_DATASOURCE_USERNAME: bdf_admin
+      SPRING_DATASOURCE_PASSWORD: securepassword
+
+      
+      SPRING_AI_OLLAMA_BASE_URL: http://bdf-ollama:11434
+      SPRING_AI_OLLAMA_CHAT_OPTIONS_MODEL: llama3
+      SPRING_AI_OLLAMA_EMBEDDING_OPTIONS_MODEL: nomic-embed-text
+
+      
+      SPRING_AI_VECTORSTORE_PGVECTOR_INITIALIZE_SCHEMA: "true"
+      SPRING_AI_VECTORSTORE_PGVECTOR_INDEX_TYPE: HNSW
+      SPRING_AI_VECTORSTORE_PGVECTOR_DISTANCE_TYPE: COSINE_DISTANCE
+      SPRING_AI_VECTORSTORE_PGVECTOR_DIMENSIONS: "768"
+
+      
+      
+      
+      SPRING_AI_VECTORSTORE_PGVECTOR_REMOVE_EXISTING_VECTOR_STORE_TABLE: "false"
+
+      
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75.0 -Xms256m -Xmx2g"
+
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  
+  bdf-frontend:
+    build: ./bdf-frontend
+    container_name: bdf-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - bdf-backend
+    restart: unless-stopped
+
+volumes:
+  bdf_pg_data:
+  ollama_storage:
