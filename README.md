@@ -5,6 +5,8 @@
 This project allows users to upload PDF documents, automatically vectorizes them, and enables natural language chat with the content using local LLMs. It is built with **Spring AI**, **Angular**, and **Ollama**, ensuring complete data privacy by running entirely on your local machine.
 
 ![Architecture Diagram](image_ffcb0c.png)  
+<img width="1024" height="565" alt="image" src="https://github.com/user-attachments/assets/33e7463d-2035-47d0-9465-01654266ddec" />
+
 > *System Architecture Overview*
 
 ---
