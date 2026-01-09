@@ -1,0 +1,30 @@
+/* file: src/app/app.css */
+:host {
+  display: block;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  --bg-color: #f8f9fa;
+  --border-color: #e9ecef;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 350px; /* Chat takes space, Upload is fixed width */
+  height: 100%;
+  background-color: var(--bg-color);
+}
+
+.chat-section {
+  border-right: 1px solid var(--border-color);
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-section {
+  background: #fdfdfd;
+  padding: 1rem;
+  overflow-y: auto;
+}
